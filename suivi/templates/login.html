@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Connexion</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center min-h-screen">
+  <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-6 text-center text-blue-600">Connexion</h1>
+
+    <!-- Ajoutez la balise {% csrf_token %} dans le formulaire pour que le template fournisse le token -->
+    <form id="loginForm" method="post">
+      {% csrf_token %}
+      <input type="text" id="loginUsername" placeholder="Nom d'utilisateur" class="w-full p-2 mb-4 border rounded" required />
+      <input type="password" id="loginPassword" placeholder="Mot de passe" class="w-full p-2 mb-4 border rounded" required autocomplete="current-password" />
+      <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition">Se connecter</button>
+    </form>
+
+    <p class="mt-4 text-center">
+      Pas encore de compte ? <a href="/register" class="text-green-500 underline">Inscris-toi</a>
+    </p>
+
+    <p id="responseMsg" class="text-red-500 text-sm mt-4 text-center"></p>
+  </div>
+
+  <script>
+    // Fonction pour récupérer la valeur d'un cookie par son nom
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+          cookie = cookie.trim();
+          if (cookie.startsWith(name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Récupération du token CSRF depuis le cookie
+    const csrftoken = getCookie('csrftoken');
+    console.log("CSRF Token récupéré :", csrftoken);
+
+    // Gestion de la soumission du formulaire par AJAX
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault(); // Empêche le rechargement de la page
+
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+
+      try {
+        const response = await fetch('/api/login/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken,  // Injection du token CSRF récupéré dynamiquement
+          },
+          credentials: 'include',  // Envoie des cookies avec la requête
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+        const msgEl = document.getElementById('responseMsg');
+        msgEl.textContent = data.message;
+
+        if (response.ok) {
+          msgEl.classList.remove('text-red-500');
+          msgEl.classList.add('text-green-500');
+          // Redirection vers la page d'accueil ou un dashboard après 1,5 seconde
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 1500);
+        } else {
+          msgEl.classList.remove('text-green-500');
+          msgEl.classList.add('text-red-500');
+        }
+      } catch (err) {
+        console.error('Erreur JS ou réseau:', err);
+        const msgEl = document.getElementById('responseMsg');
+        msgEl.textContent = 'Erreur de communication avec le serveur.';
+        msgEl.classList.remove('text-green-500');
+        msgEl.classList.add('text-red-500');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+
+__psycache__/
+*.pyc
+db.sqlite3
+env/
+venv/
+virtual/
+.vscode/

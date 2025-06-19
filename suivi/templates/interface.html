@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Suivi de Santé</title>
+</head>
+<body>
+  <h1>Données de Santé</h1>
+  <div id="resultat"></div>
+
+  <script>
+    fetch("http://127.0.0.1:8000/api/sante/")
+      .then(response => response.json())
+      .then(data => {
+        const zone = document.getElementById("resultat");
+        data.forEach(item => {
+          zone.innerHTML += <p>${JSON.stringify(item)}</p>;
+        });
+      })
+      .catch(err => {
+        console.error("Erreur API :", err);
+        document.getElementById("resultat").innerHTML = "Erreur de connexion à l'API.";
+      });
+  </script>
+</body>
+</html>
